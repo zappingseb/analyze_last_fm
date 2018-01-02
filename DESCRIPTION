@@ -9,7 +9,6 @@ Description: this is a basic package to analyze last.fm statistics
 Depends: jsonlite,
   dplyr,
   methods,
-  R6,
-  RCurl
+  R6
 License: GNU GPL
 RoxygenNote: 6.0.1
