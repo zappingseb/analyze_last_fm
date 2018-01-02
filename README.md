@@ -28,3 +28,21 @@ data <- UserData$new("myuser","xxx0000xxxKEY",2017)
 View(data$albumstats(sort_by="by_total_count"))
 ```
 
+First Plotting functions
+---
+
+**Clock Plot**
+
+``` r
+data$clock.plot()
+
+```
+![alt text](https://raw.githubusercontent.com/zappingseb/analyze_last_fm/master/inst/images/clock_plot.png)
+
+**Bar Chart**
+
+``` r
+data$barplots("weekdays")
+
+```
+![alt text](https://raw.githubusercontent.com/zappingseb/analyze_last_fm/master/inst/images/weekdays.png)

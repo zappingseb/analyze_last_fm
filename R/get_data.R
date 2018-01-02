@@ -8,6 +8,7 @@
 #' @name UserData
 #' @field username \code{character} The \url{http://www.last.fm} user whos data shall be taken
 #' @field apikey \code{character} The \url{http://www.last.fm} API key of your app or any app
+#' @field timezone \code{numeric} Compared time to GMT, for Warsaw or Berlin it's +1
 #' @field data_table \code{data.frame} A data table containing the last years tracks of the
 #' user in the columns
 #' \itemize{
@@ -25,6 +26,7 @@
 #' @param username \code{character} username \code{character} The \url{http://www.last.fm} user whos data shall be taken
 #' @param API_KEY \code{character} The \url{http://www.last.fm} API key of your app or any app
 #' @param year \code{integer} Year which shall be analyzed
+#' @param timezone \code{numeric} Compared time to GMT, for Warsaw or Berlin it's +1
 #' @importFrom R6 R6Class
 #' @export
 #' @format An \code{\link{R6Class}} generator object
@@ -42,6 +44,7 @@ UserData <- R6Class("UserData",
                     username = NULL,
                     apikey = NULL,
                     json_data=NULL,
+                    timezone=1,
                     data_table=data.frame(
                       "artist.#text"=character(0),
                       "name"=character(0),
@@ -49,8 +52,9 @@ UserData <- R6Class("UserData",
                       "date.uts"=character(0),
                       "date.#text"=character(0)
                     ),
-                    initialize = function(username = NA, API_KEY = NA, year=NULL) {
+                    initialize = function(username = NA, API_KEY = NA, year=NULL, timezone=1) {
                       self$username <- username
+                      self$timezone <- timezone
                       self$apikey <- API_KEY
                       self$get_data(year)
                     },
@@ -69,7 +73,14 @@ UserData <- R6Class("UserData",
                       
                       # Function to get the data of a specific year
                       stop_sign = FALSE
+                      is_test = FALSE
                       page=1
+                      
+                      if(year=="test"){
+                        year = as.numeric(gsub("\\-[0-9]{2}\\-[0-9]{2}","",Sys.Date()))
+                        is_test <- TRUE
+                      }
+                      
                       max_time <- as.POSIXct(paste0("31 12 ",year,", 23:59"),origin="1899-12-30",format="%d %m %Y, %H:%M")
                       min_time <- as.POSIXct(paste0("01 01 ",year,", 00:00"),origin="1899-12-30",format="%d %m %Y, %H:%M")
                       
@@ -84,6 +95,11 @@ UserData <- R6Class("UserData",
                         })
                         
                         self$data_table <- rbind(self$data_table,x_test)
+                        
+                        if(is_test){
+                          stop_sign=TRUE
+                          
+                        }
                         
                         max_index <- which(self$data_table$date.uts < max_time)
                         min_index <- which(self$data_table$date.uts > min_time)

@@ -9,6 +9,8 @@ Description: this is a basic package to analyze last.fm statistics
 Depends: jsonlite,
   dplyr,
   methods,
-  R6
+  R6,
+  viridisLite,
+  lubridate
 License: GNU GPL
 RoxygenNote: 6.0.1
