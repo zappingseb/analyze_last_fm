@@ -1,0 +1,15 @@
+Package: analyzelastfm
+Type: Package
+Title: What the package does (short line)
+Version: 0.1
+Date: 2018-01-02
+Author: Sebastian Wolf
+Maintainer: Sebastian Wolf <sebastian@mail-wolf.de>
+Description: this is a basic package to analyze last.fm statistics
+Depends: jsonlite,
+  dplyr,
+  methods,
+  R6,
+  RCurl
+License: GNU GPL
+RoxygenNote: 6.0.1
