@@ -46,3 +46,10 @@ data$barplots("weekdays")
 
 ```
 ![alt text](https://raw.githubusercontent.com/zappingseb/analyze_last_fm/master/inst/images/weekdays.png)
+
+``` r
+data$daily_month_plot()
+
+```
+
+![alt text](https://raw.githubusercontent.com/zappingseb/analyze_last_fm/master/inst/images/month_day.png)

@@ -110,41 +110,123 @@ UserData$set("public", "clock.plot", function(...) {
 #' @param choice_of_aggregation \code{character} How you would like to aggregate the listened tracks
 UserData$set("public", "barplots", function(choice_of_aggregation=c("day","month","week","weekdays")) {
   
-data_with_month <- self$data_table %>% rowwise() %>% mutate(real_date = 
-                                                              as.POSIXct(as.numeric(uts),origin="1970-01-01",tz="GMT"))
-
-if(choice_of_aggregation=="weekdays"){
-  data_by_month <- data_with_month %>% group_by(month=format(as.Date(real_date), "%a")) %>%
-    summarize(amount=n())
   
-  if("Di" %in% data_by_month$month){
-    data_by_month$month <-  factor(data_by_month$month, levels= c("Mo", "Di", 
-                                          "Mi", "Do", "Fr", "Sa", "So"))
-  }else{
-    data_by_month$month <- factor(data_by_month$month, levels= c("Su", "Mo", 
-                                             "Tu", "We", "Th", "Fr", "Sa"))
+  
+  barplot(self$bar_data(choice_of_aggregation))
+  
+},overwrite=TRUE)
+
+#' Function to generate aggregated data per time
+#' @name bar_data
+#' @param choice_of_aggregation \code{character} How you would like to aggregate the listened tracks
+UserData$set("public", "bar_data", function(choice_of_aggregation=c("day","month","week","weekdays")) {
+  data_with_month <- self$data_table %>% rowwise() %>% mutate(real_date = 
+                                                                as.POSIXct(as.numeric(uts),origin="1970-01-01",tz="GMT"))
+  
+  if(choice_of_aggregation=="weekdays"){
+    data_by_month <- data_with_month %>% group_by(month=format(as.Date(real_date), "%a")) %>%
+      summarize(amount=n())
     
+    if("Di" %in% data_by_month$month){
+      data_by_month$month <-  factor(data_by_month$month, levels= c("Mo", "Di", 
+                                                                    "Mi", "Do", "Fr", "Sa", "So"))
+    }else{
+      data_by_month$month <- factor(data_by_month$month, levels= c("Su", "Mo", 
+                                                                   "Tu", "We", "Th", "Fr", "Sa"))
+      
+      
+    }
+    data_by_month <- data_by_month[order(data_by_month$month),]
+    naming <- data_by_month %>% .$month
+  }else{
+    
+    data_by_month <- data_with_month %>% group_by(month=lubridate::floor_date(real_date, choice_of_aggregation)) %>%
+      summarize(amount=n())
+    naming <- data_by_month %>% .$month
+  }
+  
+  if(choice_of_aggregation=="month"){
+    naming <- data_by_month %>% mutate(month=months(month)) %>% select(month) %>% .$month
+  }else if(choice_of_aggregation=="week"){
+    naming <- data_by_month %>% mutate(month=strftime(month,"%V")) %>% select(month) %>% .$month
+  }
+  my_vector <- data_by_month %>% select(amount) %>% flatten() %>% .$amount
+  
+  names(my_vector) <- naming
+  
+  return(my_vector)
+},overwrite=TRUE)
+
+UserData$set("public", "daily_month_plot", function() {
+  
+  monthly_data <- self$bar_data("month")
+  
+  daily_data <- self$bar_data("day")
+  
+  # Number of Days function from stackoverflow
+  numberOfDays <- function(date) {
+    m <- format(date, format="%m")
+    
+    while (format(date, format="%m") == m) {
+      date <- date + 1
+    }
+    
+    return(as.integer(format(date - 1, format="%d")))
+  }
+  
+  # Create a vector where each day contains the average value of each month
+  
+  year_of_analysis <- year(as.POSIXct(as.numeric(self$data_table$uts[1]),origin="1970-01-01",tz="GMT"))
+  
+  dates = as.Date(paste0(year_of_analysis,"-",1:12,"-23"), "%Y-%m-%d")
+  
+  nr_of_days <- sapply(dates,numberOfDays)
+  
+  avg_per_month <- monthly_data/nr_of_days
+  
+  month_data <- c()
+  
+  for(month_index in 1:length(avg_per_month)){
+    
+    month_data <-c(month_data,
+                   rep(avg_per_month[month_index],nr_of_days[month_index]))
     
   }
-  data_by_month <- data_by_month[order(data_by_month$month),]
-  naming <- data_by_month %>% .$month
-}else{
+  # Get the index of the 15th day of each month
+  day15_index <- sapply(1:12,function(x)sum(nr_of_days[1:x])+15-nr_of_days[x])
   
-  data_by_month <- data_with_month %>% group_by(month=lubridate::floor_date(real_date, choice_of_aggregation)) %>%
-    summarize(amount=n())
-  naming <- data_by_month %>% .$month
-}
-
-if(choice_of_aggregation=="month"){
-  naming <- data_by_month %>% mutate(month=months(month)) %>% select(month) %>% .$month
-}else if(choice_of_aggregation=="week"){
-  naming <- data_by_month %>% mutate(month=strftime(month,"%V")) %>% select(month) %>% .$month
-}
-my_vector <- data_by_month %>% select(amount) %>% flatten() %>% .$amount
-
-names(my_vector) <- naming
-
-barplot(my_vector)
+  # Rename the month to have just the 15th of each month labelled
+  names(month_data) <- NA
+  names(month_data)[day15_index] <- names(avg_per_month)
+  
+  dates_of_year <- seq( as.Date(paste0(year,"-01-01")), as.Date(paste0(year,"-12-31")), by="+1 day")
+  
+  dates_of_year_data <- daily_data[
+    match(as.character(dates_of_year),names(daily_data))]
+  
+  # Plot the monthly data in the background
+  # Including labels for the x-axis
+  barplot(month_data,
+          border=NA,
+          col = "#3F4788FF",
+          beside=TRUE,
+          space = c(0, .2),
+          ylim=c(0,max(dates_of_year_data,na.rm=T)),
+          las=2)
+  par(new=TRUE)
+  # Plot the daily data in the front
+  barplot(dates_of_year_data,
+          border=NA,
+          col = "#74D055FF",
+          beside=TRUE,
+          space = c(0, .2),
+          ylim=c(0,max(dates_of_year_data,na.rm=T)),
+          axes=FALSE,
+          axisnames = FALSE)
+  legend("topright",fill=c("#3F4788FF","#74D055FF"),c("Average per month","Daily"),border=NA,bty = "n")
 },overwrite=TRUE)
-  
+
+
+
+
 
