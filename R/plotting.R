@@ -110,7 +110,7 @@ UserData$set("public", "clock.plot", function(...) {
 #' @param choice_of_aggregation \code{character} How you would like to aggregate the listened tracks
 UserData$set("public", "barplots", function(choice_of_aggregation=c("day","month","week","weekdays")) {
   
-data_with_month <- data$data_table %>% rowwise() %>% mutate(real_date = 
+data_with_month <- self$data_table %>% rowwise() %>% mutate(real_date = 
                                                               as.POSIXct(as.numeric(uts),origin="1970-01-01",tz="GMT"))
 
 if(choice_of_aggregation=="weekdays"){
