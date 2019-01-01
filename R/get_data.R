@@ -35,7 +35,7 @@
 #' \describe{
 #'   \item{\code{create_api(page)}}{This method uses \code{page} to create the API json call needed for last.fm}
 #'   \item{\code{get_data(year)}}{This method downloads the last.fm data of a specific year into the data_table field}
-#'   \item{\code{album_stats(exclude_artist="Die drei ???",min_tracks=5,sort_by=c("by_total_count","by_album_count"))}}{
+#'   \item{\code{album_stats(exclude_artist="Die drei ???",exclude_album="",min_tracks=5,sort_by=c("by_total_count","by_album_count"))}}{
 #'   This method creates a table with album statistics for the specific year}
 
 #' }
@@ -45,6 +45,7 @@ UserData <- R6Class("UserData",
                     apikey = NULL,
                     json_data=NULL,
                     timezone=1,
+                    year=numeric(0),
                     data_table=data.frame(
                       "artist.#text"=character(0),
                       "name"=character(0),
@@ -56,6 +57,7 @@ UserData <- R6Class("UserData",
                       self$username <- username
                       self$timezone <- timezone
                       self$apikey <- API_KEY
+                      self$year <- year
                       self$get_data(year)
                     },
                     # Function to create the API call
@@ -119,7 +121,7 @@ UserData <- R6Class("UserData",
                       self$data_table <-self$data_table[take_index,]
                       colnames(self$data_table)<-c("artist","track","album","uts","datetext")
                     },
-                    albumstats = function(exclude_artist="Die drei ???",min_tracks=5,sort_by=c("by_total_count","by_album_count")) {
+                    albumstats = function(exclude_artist="Die drei ???",exclude_album="",min_tracks=5,sort_by=c("by_total_count","by_album_count")) {
                       
                       
                       albumlabel <- self$data_table %>% 
@@ -134,11 +136,11 @@ UserData <- R6Class("UserData",
                         
                       if(sort_by=="by_total_count"){
                         album_data <- albumlabel %>% left_join(albumstats) %>% filter(count>min_tracks) %>%
-                          arrange(desc(count)) %>% filter(artist!=exclude_artist)  
+                          arrange(desc(count)) %>% filter(artist!=exclude_artist) %>% filter(album!=exclude_album) 
                       }else{
                         
                       album_data <- albumlabel %>% left_join(albumstats) %>% filter(count>min_tracks) %>%
-                        arrange(desc(count_by_track)) %>% filter(artist!=exclude_artist)
+                        arrange(desc(count_by_track)) %>% filter(artist!=exclude_artist) %>% filter(album!=exclude_album) 
                       }
                       
                       return(album_data)

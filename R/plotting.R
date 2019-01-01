@@ -121,7 +121,9 @@ UserData$set("public", "barplots", function(choice_of_aggregation=c("day","month
 #' @param choice_of_aggregation \code{character} How you would like to aggregate the listened tracks
 UserData$set("public", "bar_data", function(choice_of_aggregation=c("day","month","week","weekdays")) {
   data_with_month <- self$data_table %>% rowwise() %>% mutate(real_date = 
-                                                                as.POSIXct(as.numeric(uts),origin="1970-01-01",tz="GMT"))
+                                                                as.POSIXct(as.numeric(uts),origin="1970-01-01",tz="GMT")) %>%
+                     mutate(year=substring(as.character(real_date),1,4)) %>% 
+                     filter(as.numeric(year)==self$year)
   
   if(choice_of_aggregation=="weekdays"){
     data_by_month <- data_with_month %>% group_by(month=format(as.Date(real_date), "%a")) %>%
@@ -180,11 +182,13 @@ UserData$set("public", "daily_month_plot", function() {
   
   dates = as.Date(paste0(year_of_analysis,"-",1:12,"-23"), "%Y-%m-%d")
   
-  nr_of_days <- sapply(dates,numberOfDays)
-  
+  nr_of_days <- sapply(dates, numberOfDays)
+
   avg_per_month <- monthly_data/nr_of_days
   
   month_data <- c()
+  
+  
   
   for(month_index in 1:length(avg_per_month)){
     
@@ -199,7 +203,7 @@ UserData$set("public", "daily_month_plot", function() {
   names(month_data) <- NA
   names(month_data)[day15_index] <- names(avg_per_month)
   
-  dates_of_year <- seq( as.Date(paste0(year,"-01-01")), as.Date(paste0(year,"-12-31")), by="+1 day")
+  dates_of_year <- seq( as.Date(paste0(self$year,"-01-01")), as.Date(paste0(self$year,"-12-31")), by="+1 day")
   
   dates_of_year_data <- daily_data[
     match(as.character(dates_of_year),names(daily_data))]
