@@ -1,4 +1,4 @@
-Overview
+Overview <img src="inst/images/logo.png" align="right" />
 --------
 
 The **analyzelastfm** is a package to help you downloading your data from the last.fm REST API by simple R calls.
