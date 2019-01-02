@@ -1,6 +1,8 @@
 Overview <img src="inst/images/logo.png" align="right" />
 --------
 
+[![Build Status](https://travis-ci.org/zappingseb/analyze_last_fm.svg?branch=master)](https://travis-ci.org/zappingseb/analyze_last_fm)
+
 The **analyzelastfm** is a package to help you downloading your data from the last.fm REST API by simple R calls.
 It is written in R6.
 

@@ -37,8 +37,8 @@
 #'   \item{\code{get_data(year)}}{This method downloads the last.fm data of a specific year into the data_table field}
 #'   \item{\code{album_stats(exclude_artist="Die drei ???",exclude_album="",min_tracks=5,sort_by=c("by_total_count","by_album_count"))}}{
 #'   This method creates a table with album statistics for the specific year}
-
 #' }
+#' @import dplyr jsonlite lubridate methods viridisLite
 UserData <- R6Class("UserData",
                   public = list(
                     username = NULL,
