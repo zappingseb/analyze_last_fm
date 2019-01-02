@@ -18,7 +18,7 @@
 #'\item{uts:}{ Time as a Javascript time starting 1970-01-01}
 #'\item{datetext:}{ Time as Human readible text}
 #'}
-#' @usage data <- UserData$new(username, API_KEY, year)
+#' @usage data <- UserData$new(username, API_KEY, year, timezone)
 #' 
 #' album_analysis <- data$albumstats()
 #' 
