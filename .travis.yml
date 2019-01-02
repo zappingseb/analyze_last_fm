@@ -1,0 +1,19 @@
+# R for travis: see documentation at https://docs.travis-ci.com/user/languages/r
+
+language: R
+sudo: false
+cache:
+ - packages
+ - apt: true
+pandoc_version: 1.19.2.1
+
+addons:
+  apt:
+    update: true
+    packages:
+      - qpdf
+      - ghostscript
+
+script:
+- R CMD build . --compact-vignettes=gs+qpdf
+- R CMD check *tar.gz
