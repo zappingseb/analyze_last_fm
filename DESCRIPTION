@@ -12,5 +12,7 @@ Depends: jsonlite,
   R6,
   viridisLite,
   lubridate
+Suggests: 
+  roxygen2
 License: GNU GPL
 RoxygenNote: 6.0.1
