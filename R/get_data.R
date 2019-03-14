@@ -53,15 +53,15 @@ UserData <- R6Class("UserData",
                       "date.uts"=character(0),
                       "date.#text"=character(0)
                     ),
-                    initialize = function(username = NA, API_KEY = NA, year=NULL, timezone=1) {
+                    initialize = function(username = NA, API_KEY = NA, year="test", timezone=1) {
                       self$username <- username
                       self$timezone <- timezone
                       self$apikey <- API_KEY
                       self$year <- year
-                      self$get_data(year)
+                      self$get_data()
                     },
                     # Function to create the API call
-                    create_api = function(page=1){
+                    create_api = function(page=1, from = NULL, to = NULL){
                       
                       paste0(
                         "http://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=",
@@ -69,26 +69,32 @@ UserData <- R6Class("UserData",
                         "&api_key=",
                         self$apikey,
                         "&format=json&limit=200&page=",
-                        page)
+                        page,
+                        if(!is.null(from)){paste0("&from=",from)},
+                        if(!is.null(from)){paste0("&to=",to)}
+                        )
                     },
-                    get_data = function(year) {
+                    get_data = function() {
                       
                       # Function to get the data of a specific year
                       stop_sign = FALSE
                       is_test = FALSE
                       page=1
                       
-                      if(year=="test"){
-                        year = as.numeric(gsub("\\-[0-9]{2}\\-[0-9]{2}","",Sys.Date()))
+                      if(self$year=="test"){
+                        self$year = as.numeric(gsub("\\-[0-9]{2}\\-[0-9]{2}","",Sys.Date()))
                         is_test <- TRUE
                       }
+
+                      max_time <- as.POSIXct(paste0("31 12 ",self$year,", 23:59"),origin="1899-12-30",format="%d %m %Y, %H:%M")
+                      min_time <- as.POSIXct(paste0("01 01 ",self$year,", 00:00"),origin="1899-12-30",format="%d %m %Y, %H:%M")
                       
-                      max_time <- as.POSIXct(paste0("31 12 ",year,", 23:59"),origin="1899-12-30",format="%d %m %Y, %H:%M")
-                      min_time <- as.POSIXct(paste0("01 01 ",year,", 00:00"),origin="1899-12-30",format="%d %m %Y, %H:%M")
+                      from <- as.numeric(as.POSIXct(paste0("01 01 ",self$year,", 00:00"),origin="1970-01-01",format="%d %m %Y, %H:%M"))
+                      to <- as.numeric(as.POSIXct(paste0("31 12 ",self$year,", 23:59"),origin="1970-01-01",format="%d %m %Y, %H:%M"))
                       
                       while(!stop_sign){
-                        
-                        json_data <- fromJSON(self$create_api(page))$recenttracks
+
+                        json_data <- fromJSON(self$create_api(page, from = from, to = to))$recenttracks
                         
                         x_test <- json_data$track %>% flatten(recursive=TRUE) %>% select(c("artist.#text","name","album.#text","date.uts","date.#text"))
                         
@@ -100,7 +106,6 @@ UserData <- R6Class("UserData",
                         
                         if(is_test){
                           stop_sign=TRUE
-                          
                         }
                         
                         max_index <- which(self$data_table$date.uts < max_time)
