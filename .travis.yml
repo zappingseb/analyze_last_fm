@@ -1,6 +1,8 @@
 # R for travis: see documentation at https://docs.travis-ci.com/user/languages/r
 
 language: R
+env:
+  - PKG_TARBALL=analyzelastfm_0.1.tar.gz
 sudo: false
 cache:
  - packages
