@@ -18,3 +18,11 @@ script:
 - Rscript -e 'devtools::document()'
 - R CMD build . --compact-vignettes=gs+qpdf
 - R CMD check *tar.gz
+
+deploy:
+- provider: releases
+  api_key: $GITHUB_TOKEN
+  file: $PKG_TARBALL
+  skip_cleanup: true
+  on:
+    tags: true
