@@ -1,11 +1,15 @@
 # R for travis: see documentation at https://docs.travis-ci.com/user/languages/r
 
 language: R
+env:
+  - PKG_TARBALL=analyzelastfm_0.1.tar.gz
 sudo: false
 cache:
  - packages
  - apt: true
 pandoc_version: 1.19.2.1
+r_packages:
+ - devtools
 
 addons:
   apt:
@@ -18,3 +22,11 @@ script:
 - Rscript -e 'devtools::document()'
 - R CMD build . --compact-vignettes=gs+qpdf
 - R CMD check *tar.gz
+
+deploy:
+- provider: releases
+  api_key: $GITHUB_TOKEN
+  file: $PKG_TARBALL
+  skip_cleanup: true
+  on:
+    tags: true
