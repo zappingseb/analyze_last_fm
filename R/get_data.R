@@ -98,30 +98,36 @@ UserData <- R6Class("UserData",
 
                         json_data <- fromJSON(api_call)$recenttracks
                         
-                        if (!length(json_data$track)){
-                          stop(paste0("The API call '", api_call, "' did not find any tracks"))
-                        }
-                        x_test <- json_data$track %>% flatten(recursive=TRUE) %>% select(c("artist.#text","name","album.#text","date.uts","date.#text"))
-                        
-                        x_test$date.uts <- sapply(x_test$date.uts,function(x){
-                          as.POSIXct(as.numeric(x),origin="1970-01-01",tz="GMT")
-                        })
-                        
-                        self$data_table <- rbind(self$data_table,x_test)
-                        
-                        if(is_test){
+                        if (!length(json_data$track) || !is.data.frame(json_data$track)){
+                          warning(paste0("The API call '", api_call, "' did not find any tracks"))
+                          warning("More tracks for this year might be expected but last.fm API responded wrongly.")
                           stop_sign=TRUE
+                        } else {
+                          
+                          x_test <- json_data$track %>% flatten(recursive=TRUE) %>% select(c("artist.#text","name","album.#text","date.uts","date.#text"))
+                          
+                          x_test$date.uts <- sapply(x_test$date.uts,function(x){
+                            as.POSIXct(as.numeric(x),origin="1970-01-01",tz="GMT")
+                          })
+                          
+                          self$data_table <- rbind(self$data_table,x_test)
+                          
+                          if(is_test){
+                            stop_sign=TRUE
+                          }
+                          
+                          max_index <- which(self$data_table$date.uts < max_time)
+                          min_index <- which(self$data_table$date.uts > min_time)
+                          
+                          print(paste("Getting data until: ",self$data_table[max(min_index),"date.#text"],"including",dim(self$data_table)[1],"Tracks"))
+                          
+                          if(dim(self$data_table)[1] > max(min_index)){
+                            stop_sign=TRUE
+                          }
                         }
                         
-                        max_index <- which(self$data_table$date.uts < max_time)
-                        min_index <- which(self$data_table$date.uts > min_time)
-                        
-                        print(paste("Getting data until: ",self$data_table[max(min_index),"date.#text"],"including",dim(self$data_table)[1],"Tracks"))
-                        
-                        if(dim(self$data_table)[1] > max(min_index)){
-                          stop_sign=TRUE
-                        }
-                         page=page+1
+                        Sys.sleep(base::sample(seq(0, 1, .1), 1))
+                        page = page + 1
                       }
                       
                       max_index <- which(self$data_table$date.uts < max_time)
@@ -131,7 +137,7 @@ UserData <- R6Class("UserData",
                       self$data_table <-self$data_table[take_index,]
                       colnames(self$data_table)<-c("artist","track","album","uts","datetext")
                     },
-                    albumstats = function(exclude_artist="Die drei ???",exclude_album="",min_tracks=5,sort_by=c("by_total_count","by_album_count")) {
+                    albumstats = function(exclude_artist="Die drei ???", exclude_album="", min_tracks=5, sort_by=c("by_total_count", "by_album_count")) {
                       
                       
                       albumlabel <- self$data_table %>% 
@@ -144,15 +150,15 @@ UserData <- R6Class("UserData",
                                   count = n_distinct(track),
                                   count_by_track=n()/n_distinct(track))
                         
-                      if(sort_by=="by_total_count"){
-                        album_data <- albumlabel %>% left_join(albumstats) %>% filter(count>min_tracks) %>%
-                          arrange(desc(count)) %>% filter(artist!=exclude_artist) %>% filter(album!=exclude_album) 
-                      }else{
+                      album_joined <- albumlabel %>% left_join(albumstats) %>% filter(count>min_tracks)
                         
-                      album_data <- albumlabel %>% left_join(albumstats) %>% filter(count>min_tracks) %>%
-                        arrange(desc(count_by_track)) %>% filter(artist!=exclude_artist) %>% filter(album!=exclude_album) 
+                        
+                      if(sort_by=="by_total_count"){
+                        album_sorted <- album_joined %>% arrange(desc(count))
+                      }else{
+                        album_sorted <- album_joined %>% arrange(desc(count_by_track))
                       }
-                      
+                      album_data <- album_sorted %>% dplyr::filter(artist!=exclude_artist) %>% dplyr::filter(album!=exclude_album) 
                       return(album_data)
                     }
                   )

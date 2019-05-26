@@ -25,14 +25,13 @@ https://www.last.fm/api/account/create
 
 ``` r
 library(analyzelastfm)
-data <- UserData$new("myuser","xxx0000xxxKEY",2017)
+user_data <- UserData$new("myuser", "xxx0000xxxKEY", 2017)
 
-View(data$albumstats(sort_by="by_total_count"))
+View(user_data$albumstats(sort_by = "by_total_count"))
 ```
 
 First Plotting functions
 ---
-
 **Clock Plot**
 
 ``` r
