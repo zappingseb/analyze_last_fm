@@ -93,9 +93,14 @@ UserData <- R6Class("UserData",
                       to <- as.numeric(as.POSIXct(paste0("31 12 ",self$year,", 23:59"),origin="1970-01-01",format="%d %m %Y, %H:%M"))
                       
                       while(!stop_sign){
-
-                        json_data <- fromJSON(self$create_api(page, from = from, to = to))$recenttracks
                         
+                        api_call <- self$create_api(page, from = from, to = to)
+
+                        json_data <- fromJSON(api_call)$recenttracks
+                        
+                        if (!length(json_data$track)){
+                          stop(paste0("The API call '", api_call, "' did not find any tracks"))
+                        }
                         x_test <- json_data$track %>% flatten(recursive=TRUE) %>% select(c("artist.#text","name","album.#text","date.uts","date.#text"))
                         
                         x_test$date.uts <- sapply(x_test$date.uts,function(x){
