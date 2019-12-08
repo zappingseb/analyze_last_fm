@@ -10,9 +10,10 @@ Depends: jsonlite,
   dplyr,
   methods,
   R6,
+  rlang,
   viridisLite,
   lubridate
 License: GPL
 Suggests: 
   roxygen2
-RoxygenNote: 6.0.1
+RoxygenNote: 6.1.1
