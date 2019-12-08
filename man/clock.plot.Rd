@@ -7,3 +7,10 @@
 Clock plot function
 Taken from \url{http://www.r-graph-gallery.com/49-clock-plot/}
 }
+\examples{
+
+test_data <- UserData$new("zappingseb","b25b959554ed76058ac220b7b2e0a026","test")
+
+test_data$clock.plot()
+
+}
